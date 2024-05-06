@@ -10,7 +10,8 @@
   <description>
     <p>
       BlastEm is an open source, highly accurate emulator for the Genesis/Megadrive
-      that runs on modest hardware. It also supports playing back Sega Master System games.
+      that runs on modest hardware. It also supports playing back Sega Master System
+      games, Sega Game Gear games and has experimental support for Sega CD games.
     </p>
     <p>
       BlastEm has support for savestates, Mega/Sega Mouse, XBAND and Saturn keyboard emulation.
