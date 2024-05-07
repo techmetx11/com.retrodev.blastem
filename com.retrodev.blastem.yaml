@@ -24,7 +24,7 @@ modules:
       - install -m0755 -D blastem /app/bin/blastem.bin
       - install -m0755 -D blastem.sh /app/bin/blastem
       - install -d /app/share/blastem/
-      - cp -r shaders/ images/ gamecontrollerdb.txt rom.db /app/share/blastem/
+      - cp -r shaders/ images/ gamecontrollerdb.txt rom.db systems.cfg /app/share/blastem/
       - install -m0644 -D default.cfg -t /app/etc/
       - install -m0644 -D ${FLATPAK_ID}.png -t /app/share/icons/hicolor/256x256/apps/
       - install -m0644 -D com.retrodev.blastem.desktop -t /app/share/applications/
