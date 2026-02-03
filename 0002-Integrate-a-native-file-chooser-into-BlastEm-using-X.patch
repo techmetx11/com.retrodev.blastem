@@ -1,14 +1,15 @@
-From 464bbad5dea3c481600b206f0bcaa5ace7861650 Mon Sep 17 00:00:00 2001
+From e0ad37e6fe205d0ff701458403e1c83e5000c912 Mon Sep 17 00:00:00 2001
 From: techmetx11 <techmetx11@disroot.org>
 Date: Mon, 2 Feb 2026 23:51:58 +0100
 Subject: [PATCH] Integrate a native file chooser into BlastEm using XDG
  desktop portal API (for Flatpak)
 
+Add filters to the file chooser
 ---
- Makefile                     | 15 ++------
- default.cfg                  |  2 +-
- nuklear_ui/filechooser_xdg.c | 66 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 69 insertions(+), 14 deletions(-)
+ Makefile                     |  15 +---
+ default.cfg                  |   2 +-
+ nuklear_ui/filechooser_xdg.c | 145 +++++++++++++++++++++++++++++++++++
+ 3 files changed, 148 insertions(+), 14 deletions(-)
  create mode 100644 nuklear_ui/filechooser_xdg.c
 
 diff --git a/Makefile b/Makefile
@@ -54,10 +55,10 @@ index 73df736..7a22f1c 100644
  system {
 diff --git a/nuklear_ui/filechooser_xdg.c b/nuklear_ui/filechooser_xdg.c
 new file mode 100644
-index 0000000..080dce3
+index 0000000..bd90286
 --- /dev/null
 +++ b/nuklear_ui/filechooser_xdg.c
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,145 @@
 +#include <stddef.h>
 +#include <stdint.h>
 +
@@ -111,16 +112,95 @@ index 0000000..080dce3
 +	g_main_context_push_thread_default(context);
 +
 +	data.loop = loop;
-+	//data.cancellable = cancellable;
 +
-+	xdp_portal_open_file(portal, NULL, title, NULL, NULL, NULL, 0, cancellable, native_filechooser_callback, &data);
++	// Filter builder
++	GVariantBuilder filters;
++	GVariantBuilder allfiles_filter;
++	GVariantBuilder allsupported_filter;
++	GVariantBuilder gen_filter;
++	GVariantBuilder scd_filter;
++	GVariantBuilder sms_filter;
++	GVariantBuilder vgm_filter;
++
++    	g_variant_builder_init(&filters, G_VARIANT_TYPE("a(sa(us))"));
++	g_variant_builder_init(&allfiles_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&allfiles_filter, "(us)", 0, "*");
++
++	g_variant_builder_init(&allsupported_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.zip");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.bin");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.bin.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gen");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gen.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.md");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.md.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sms");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sms.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gg");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gg.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sg");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sg.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.cue");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.toc");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.flac");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgm");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgm.gz");
++	
++	g_variant_builder_init(&gen_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.zip");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.bin");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.bin.gz");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.gen");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.gen.gz");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.md");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.md.gz");
++
++	g_variant_builder_init(&scd_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&scd_filter, "(us)", 0, "*.cue");
++	g_variant_builder_add(&scd_filter, "(us)", 0, "*.toc");
++
++	g_variant_builder_init(&sms_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sms");
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sms.gz");
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.gg");
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.gg.gz");
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sg");
++	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sg.gz");
++
++	g_variant_builder_init(&vgm_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&vgm_filter, "(us)", 0, "*.flac");
++	g_variant_builder_add(&vgm_filter, "(us)", 0, "*.vgm");
++	g_variant_builder_add(&vgm_filter, "(us)", 0, "*.vgz");
++	g_variant_builder_add(&vgm_filter, "(us)", 0, "*.vgm.gz");
++
++	g_variant_builder_add(&filters, "(sa(us))", "All Files", &allfiles_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "All Supported Files", &allsupported_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Genesis/MD", &gen_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Sega/Mega CD", &scd_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Sega 8-bit", &sms_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Audio/VGM", &vgm_filter);
++
++	GVariant *filters_var = g_variant_builder_end(&filters);
++
++	// Set Genesis/MD as the default filter
++	xdp_portal_open_file(portal, NULL, title, filters_var, g_variant_get_child_value(filters_var, 2), NULL, 0, cancellable, native_filechooser_callback, &data);
 +
 +	g_main_loop_run(loop);
 +	g_main_context_pop_thread_default(context);
 +
 +	if (g_cancellable_is_cancelled(cancellable)) {
-+		return NULL;
++		data.uri = NULL;
 +	}
++	
++	g_main_loop_unref(loop);
++	g_main_context_unref(context);
 +
 +	return data.uri;
 +}
