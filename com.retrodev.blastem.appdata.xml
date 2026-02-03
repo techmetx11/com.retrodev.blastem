@@ -3,7 +3,7 @@
 <component type="desktop">
   <id>com.retrodev.blastem</id>
   <launchable type="desktop-id">com.retrodev.blastem.desktop</launchable>
-  <name>Blastem</name>
+  <name>BlastEm</name>
   <summary>A Sega Mega Drive/Genesis, and Master System emulator</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0+</project_license>
