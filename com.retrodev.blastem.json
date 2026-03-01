@@ -17,25 +17,25 @@
     "modules" : [
         "shared-modules/glu/glu-9.json",
         "shared-modules/glew/glew.json",
-	{
-		"name": "libportal",
-		"buildsystem": "meson",
-		"config-opts": [
-			"-Dbackend-gtk3=disabled",
-			"-Dbackend-gtk4=disabled",
-			"-Dbackend-qt5=disabled",
-			"-Dbackend-qt6=disabled",
-			"-Dvapi=false",
-			"-Ddocs=false",
-			"-Dtests=false"
-		],
-		"sources": [
-			{
-				"type": "git",
-				"url": "https://github.com/flatpak/libportal.git",
-				"commit": "086cc57372989117cfb6ef4c565bdd316db2e536"
-			}]
-	},
+        {
+            "name": "libportal",
+            "buildsystem": "meson",
+            "config-opts": [
+                "-Dbackend-gtk3=disabled",
+                "-Dbackend-gtk4=disabled",
+                "-Dbackend-qt5=disabled",
+                "-Dbackend-qt6=disabled",
+                "-Dvapi=false",
+                "-Ddocs=false",
+                "-Dtests=false"
+            ],
+            "sources": [
+                {
+                    "type": "git",
+                    "url": "https://github.com/flatpak/libportal.git",
+                    "commit": "086cc57372989117cfb6ef4c565bdd316db2e536"
+                }]
+        },
         {
             "name" : "blastem",
             "buildsystem" : "simple",
@@ -68,7 +68,7 @@
                     "type" : "patch",
                     "paths" : [
                         "0001-Add-support-for-Flatpak-config-data-dir-variables.patch",
-			"0002-Integrate-a-native-file-chooser-into-BlastEm-using-X.patch"
+                        "0002-Integrate-a-native-file-chooser-into-BlastEm-using-X.patch"
                     ]
                 },
                 {
