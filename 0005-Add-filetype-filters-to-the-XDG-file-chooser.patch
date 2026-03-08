@@ -1,118 +1,23 @@
-From e0ad37e6fe205d0ff701458403e1c83e5000c912 Mon Sep 17 00:00:00 2001
+From 0657e98524fc89d6e1e5e031d042576ae41a6ccc Mon Sep 17 00:00:00 2001
 From: techmetx11 <techmetx11@disroot.org>
-Date: Mon, 2 Feb 2026 23:51:58 +0100
-Subject: [PATCH] Integrate a native file chooser into BlastEm using XDG
- desktop portal API (for Flatpak)
+Date: Sun, 8 Mar 2026 14:55:36 +0000
+Subject: [PATCH 4/4] Add filetype filters to the XDG file chooser
 
-Add filters to the file chooser
 ---
- Makefile                     |  15 +---
- default.cfg                  |   2 +-
- nuklear_ui/filechooser_xdg.c | 145 +++++++++++++++++++++++++++++++++++
- 3 files changed, 148 insertions(+), 14 deletions(-)
- create mode 100644 nuklear_ui/filechooser_xdg.c
+ nuklear_ui/filechooser_xdg.c | 85 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 82 insertions(+), 3 deletions(-)
 
-diff --git a/Makefile b/Makefile
-index 6bb9be0..66d0204 100644
---- a/Makefile
-+++ b/Makefile
-@@ -93,21 +93,10 @@ Z80_DISPATCH:=call
- else #CPU=wasm
- FONT:=nuklear_ui/font.o
- ifneq ($(MAKECMDGOALS),libblastem.$(SO))
--CHOOSER:=nuklear_ui/filechooser_gtk.o
--GTKFLAGS:=$(shell pkg-config --cflags gtk+-3.0 2>/dev/null)
--ifeq ($(GTKFLAGS),)
--GTKFLAGS:=$(shell pkg-config --cflags gtk+-2.0 2>/dev/null)
--ifeq ($(GTKFLAGS),)
--CHOOSER:=nuklear_ui/filechooser_null.o
--endif
--endif
-+CHOOSER:=nuklear_ui/filechooser_xdg.o
-+LIBS+= libportal
- endif #neq ($(MAKECMDGOALS),libblastem.$(SO))
- endif #CPU=wasm
--ifeq ($(GTKFLAGS),)
--else
--EXTRA_NUKLEAR_LDFLAGS:=-ldl
--endif
--CFLAGS+= $(GTKFLAGS)
- endif #Darwin
- 
- ifdef HOST_ZLIB
-diff --git a/default.cfg b/default.cfg
-index 73df736..7a22f1c 100644
---- a/default.cfg
-+++ b/default.cfg
-@@ -412,7 +412,7 @@ ui {
- 	#specifies the preferred save-state format, set to gst for Genecyst compatible states
- 	state_format native
- 	#set to on to use the native file picker on your OS instead of the builtin one
--	use_native_filechooser off
-+	use_native_filechooser on
- }
- 
- system {
 diff --git a/nuklear_ui/filechooser_xdg.c b/nuklear_ui/filechooser_xdg.c
-new file mode 100644
-index 0000000..bd90286
---- /dev/null
+index 080dce3..54faf1b 100644
+--- a/nuklear_ui/filechooser_xdg.c
 +++ b/nuklear_ui/filechooser_xdg.c
-@@ -0,0 +1,145 @@
-+#include <stddef.h>
-+#include <stdint.h>
-+
-+#include <libportal/portal.h>
-+#include <SDL2/SDL_mutex.h>
-+
-+static XdpPortal *portal = NULL;
-+typedef struct {
-+	GMainLoop *loop;
-+	char *uri;
-+} FileChooserData;
-+
-+uint8_t native_filechooser_available(void)
-+{
-+	return 1;
-+}
-+
-+void native_filechooser_callback(GObject *obj, GAsyncResult *res, gpointer data) {
-+	FileChooserData *fcdata = data;
-+	GVariant *var = xdp_portal_open_file_finish(portal, res, NULL);
-+	if (!var) {
-+		fcdata->uri = NULL;
-+		g_main_loop_quit(fcdata->loop);
-+		return;
-+	}
-+
-+	GVariant *uris = g_variant_lookup_value(var, "uris", G_VARIANT_TYPE_STRING_ARRAY);
-+
-+	GVariant *first_uri = g_variant_get_child_value(uris, 0);
-+	gsize length = 0;
-+
-+	const gchar *uri_string = g_variant_dup_string(first_uri, &length);
-+
-+	gchar *unespaced_uri = g_filename_from_uri(uri_string, NULL, NULL);
-+	fcdata->uri = strndup(unespaced_uri, length);
-+
-+	g_free(unespaced_uri);
-+	g_main_loop_quit(fcdata->loop);
-+}
-+
-+char* native_filechooser_pick(const char *title, const char *start_directory)
-+{
-+	if (!portal) {
-+		portal = xdp_portal_new();
-+	}
-+	FileChooserData data;
-+	GMainContext *context = g_main_context_new();
-+	GMainLoop *loop = g_main_loop_new(context, FALSE);
-+	GCancellable *cancellable = g_cancellable_new();
-+
-+	g_main_context_push_thread_default(context);
-+
-+	data.loop = loop;
-+
+@@ -51,16 +51,95 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 	g_main_context_push_thread_default(context);
+ 
+ 	data.loop = loop;
+-	//data.cancellable = cancellable;
+ 
+-	xdp_portal_open_file(portal, NULL, title, NULL, NULL, NULL, 0, cancellable, native_filechooser_callback, &data);
 +	// Filter builder
 +	GVariantBuilder filters;
 +	GVariantBuilder allfiles_filter;
@@ -122,7 +27,7 @@ index 0000000..bd90286
 +	GVariantBuilder sms_filter;
 +	GVariantBuilder vgm_filter;
 +
-+    	g_variant_builder_init(&filters, G_VARIANT_TYPE("a(sa(us))"));
++	g_variant_builder_init(&filters, G_VARIANT_TYPE("a(sa(us))"));
 +	g_variant_builder_init(&allfiles_filter, G_VARIANT_TYPE("a(us)"));
 +
 +	g_variant_builder_add(&allfiles_filter, "(us)", 0, "*");
@@ -148,7 +53,7 @@ index 0000000..bd90286
 +	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgm");
 +	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgz");
 +	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.vgm.gz");
-+	
++
 +	g_variant_builder_init(&gen_filter, G_VARIANT_TYPE("a(us)"));
 +
 +	g_variant_builder_add(&gen_filter, "(us)", 0, "*.zip");
@@ -191,19 +96,20 @@ index 0000000..bd90286
 +
 +	// Set Genesis/MD as the default filter
 +	xdp_portal_open_file(portal, NULL, title, filters_var, g_variant_get_child_value(filters_var, 2), NULL, 0, cancellable, native_filechooser_callback, &data);
-+
-+	g_main_loop_run(loop);
-+	g_main_context_pop_thread_default(context);
-+
-+	if (g_cancellable_is_cancelled(cancellable)) {
+ 
+ 	g_main_loop_run(loop);
+ 	g_main_context_pop_thread_default(context);
+ 
+ 	if (g_cancellable_is_cancelled(cancellable)) {
+-		return NULL;
 +		data.uri = NULL;
-+	}
-+	
+ 	}
+ 
 +	g_main_loop_unref(loop);
 +	g_main_context_unref(context);
 +
-+	return data.uri;
-+}
+ 	return data.uri;
+ }
 -- 
-2.52.0
+2.53.0
 

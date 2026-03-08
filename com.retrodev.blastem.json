@@ -68,7 +68,10 @@
                     "type" : "patch",
                     "paths" : [
                         "0001-Add-support-for-Flatpak-config-data-dir-variables.patch",
-                        "0002-Integrate-a-native-file-chooser-into-BlastEm-using-X.patch"
+                        "0002-Add-a-native-filechooser-based-on-XDG-s-file-chooser.patch",
+                        "0003-Replace-the-GTK-filechooser-with-the-XDG-filechooser.patch",
+                        "0004-Set-use_native_filechooser-to-be-on-by-default.patch",
+                        "0005-Add-filetype-filters-to-the-XDG-file-chooser.patch"
                     ]
                 },
                 {
