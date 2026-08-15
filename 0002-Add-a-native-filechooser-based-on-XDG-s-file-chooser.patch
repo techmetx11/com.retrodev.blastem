@@ -1,0 +1,85 @@
+From 9b4053873c3bee4951cb6b359578fd7ad403df14 Mon Sep 17 00:00:00 2001
+From: techmetx11 <techmetx11@disroot.org>
+Date: Sun, 8 Mar 2026 14:44:54 +0000
+Subject: [PATCH 1/4] Add a native filechooser based on XDG's file chooser
+
+---
+ nuklear_ui/filechooser_xdg.c | 66 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 66 insertions(+)
+ create mode 100644 nuklear_ui/filechooser_xdg.c
+
+diff --git a/nuklear_ui/filechooser_xdg.c b/nuklear_ui/filechooser_xdg.c
+new file mode 100644
+index 0000000..080dce3
+--- /dev/null
++++ b/nuklear_ui/filechooser_xdg.c
+@@ -0,0 +1,66 @@
++#include <stddef.h>
++#include <stdint.h>
++
++#include <libportal/portal.h>
++#include <SDL2/SDL_mutex.h>
++
++static XdpPortal *portal = NULL;
++typedef struct {
++	GMainLoop *loop;
++	char *uri;
++} FileChooserData;
++
++uint8_t native_filechooser_available(void)
++{
++	return 1;
++}
++
++void native_filechooser_callback(GObject *obj, GAsyncResult *res, gpointer data) {
++	FileChooserData *fcdata = data;
++	GVariant *var = xdp_portal_open_file_finish(portal, res, NULL);
++	if (!var) {
++		fcdata->uri = NULL;
++		g_main_loop_quit(fcdata->loop);
++		return;
++	}
++
++	GVariant *uris = g_variant_lookup_value(var, "uris", G_VARIANT_TYPE_STRING_ARRAY);
++
++	GVariant *first_uri = g_variant_get_child_value(uris, 0);
++	gsize length = 0;
++
++	const gchar *uri_string = g_variant_dup_string(first_uri, &length);
++
++	gchar *unespaced_uri = g_filename_from_uri(uri_string, NULL, NULL);
++	fcdata->uri = strndup(unespaced_uri, length);
++
++	g_free(unespaced_uri);
++	g_main_loop_quit(fcdata->loop);
++}
++
++char* native_filechooser_pick(const char *title, const char *start_directory)
++{
++	if (!portal) {
++		portal = xdp_portal_new();
++	}
++	FileChooserData data;
++	GMainContext *context = g_main_context_new();
++	GMainLoop *loop = g_main_loop_new(context, FALSE);
++	GCancellable *cancellable = g_cancellable_new();
++
++	g_main_context_push_thread_default(context);
++
++	data.loop = loop;
++	//data.cancellable = cancellable;
++
++	xdp_portal_open_file(portal, NULL, title, NULL, NULL, NULL, 0, cancellable, native_filechooser_callback, &data);
++
++	g_main_loop_run(loop);
++	g_main_context_pop_thread_default(context);
++
++	if (g_cancellable_is_cancelled(cancellable)) {
++		return NULL;
++	}
++
++	return data.uri;
++}
+-- 
+2.53.0
+

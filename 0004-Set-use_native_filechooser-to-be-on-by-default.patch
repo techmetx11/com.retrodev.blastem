@@ -1,0 +1,25 @@
+From 32d8cfeee7aa02b2a1eeaa06e9834722ed7bdb70 Mon Sep 17 00:00:00 2001
+From: techmetx11 <techmetx11@disroot.org>
+Date: Sun, 8 Mar 2026 14:45:33 +0000
+Subject: [PATCH 3/4] Set `use_native_filechooser` to be on by default
+
+---
+ default.cfg | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/default.cfg b/default.cfg
+index 73df736..7a22f1c 100644
+--- a/default.cfg
++++ b/default.cfg
+@@ -412,7 +412,7 @@ ui {
+ 	#specifies the preferred save-state format, set to gst for Genecyst compatible states
+ 	state_format native
+ 	#set to on to use the native file picker on your OS instead of the builtin one
+-	use_native_filechooser off
++	use_native_filechooser on
+ }
+ 
+ system {
+-- 
+2.53.0
+

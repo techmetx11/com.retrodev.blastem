@@ -11,12 +11,29 @@ finish-args:
   - --socket=pulseaudio
   # Joystick and GPU access
   - --device=all
-  # Get access to the files
-  - --filesystem=home:ro
-  - --filesystem=xdg-run/gvfs:ro
 modules:
   - shared-modules/glu/glu-9.json
   - shared-modules/glew/glew.json
+  - name: libportal
+    buildsystem: meson
+    config-opts:
+      - -Dbackend-gtk3=disabled
+      - -Dbackend-gtk4=disabled
+      - -Dbackend-qt5=disabled
+      - -Dbackend-qt6=disabled
+      - -Dintrospection=false
+      - -Dvapi=false
+      - -Ddocs=false
+      - -Dtests=false
+    sources:
+      - type: archive
+        url: https://github.com/flatpak/libportal/archive/0.10.0.tar.gz
+        sha256: e1b6913c6d9015bfa918ace86f82c30940982add97aed9c18cc929c5327054fd
+        x-checker-data:
+          type: anitya
+          project-id: 230124
+          stable-only: true
+          url-template: https://github.com/flatpak/libportal/archive/$version.tar.gz
   - name: blastem
     buildsystem: simple
     build-commands:
@@ -41,6 +58,10 @@ modules:
       - type: patch
         paths:
           - 0001-Add-support-for-Flatpak-config-data-dir-variables.patch
+          - 0002-Add-a-native-filechooser-based-on-XDG-s-file-chooser.patch
+          - 0003-Replace-the-GTK-filechooser-with-the-XDG-filechooser.patch
+          - 0004-Set-use_native_filechooser-to-be-on-by-default.patch
+          - 0005-Add-filetype-filters-to-the-XDG-file-chooser.patch
       - type: file
         path: com.retrodev.blastem.png
       - type: file

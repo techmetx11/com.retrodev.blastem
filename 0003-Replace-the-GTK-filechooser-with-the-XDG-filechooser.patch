@@ -1,0 +1,41 @@
+From eec50885473c3e4a15dc34fbc332cd715d5e3656 Mon Sep 17 00:00:00 2001
+From: techmetx11 <techmetx11@disroot.org>
+Date: Sun, 8 Mar 2026 14:45:18 +0000
+Subject: [PATCH 2/4] Replace the GTK filechooser with the XDG filechooser in
+ Makefile
+
+---
+ Makefile | 15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 6bb9be0..66d0204 100644
+--- a/Makefile
++++ b/Makefile
+@@ -93,21 +93,10 @@ Z80_DISPATCH:=call
+ else #CPU=wasm
+ FONT:=nuklear_ui/font.o
+ ifneq ($(MAKECMDGOALS),libblastem.$(SO))
+-CHOOSER:=nuklear_ui/filechooser_gtk.o
+-GTKFLAGS:=$(shell pkg-config --cflags gtk+-3.0 2>/dev/null)
+-ifeq ($(GTKFLAGS),)
+-GTKFLAGS:=$(shell pkg-config --cflags gtk+-2.0 2>/dev/null)
+-ifeq ($(GTKFLAGS),)
+-CHOOSER:=nuklear_ui/filechooser_null.o
+-endif
+-endif
++CHOOSER:=nuklear_ui/filechooser_xdg.o
++LIBS+= libportal
+ endif #neq ($(MAKECMDGOALS),libblastem.$(SO))
+ endif #CPU=wasm
+-ifeq ($(GTKFLAGS),)
+-else
+-EXTRA_NUKLEAR_LDFLAGS:=-ldl
+-endif
+-CFLAGS+= $(GTKFLAGS)
+ endif #Darwin
+ 
+ ifdef HOST_ZLIB
+-- 
+2.53.0
+
