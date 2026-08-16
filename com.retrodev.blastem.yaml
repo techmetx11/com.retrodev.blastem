@@ -62,6 +62,7 @@ modules:
           - 0003-Replace-the-GTK-filechooser-with-the-XDG-filechooser.patch
           - 0004-Set-use_native_filechooser-to-be-on-by-default.patch
           - 0005-Add-filetype-filters-to-the-XDG-file-chooser.patch
+          - 0006-Force-native-file-chooser-on.patch
       - type: file
         path: com.retrodev.blastem.png
       - type: file

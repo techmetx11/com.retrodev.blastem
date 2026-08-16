@@ -1,0 +1,42 @@
+From 4efd278201ba1f174c3f868292003cf8947e2374 Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Sun, 16 Aug 2026 13:00:22 +0200
+Subject: [PATCH 6/6] Force native file chooser on
+
+---
+ nuklear_ui/blastem_nuklear.c | 8 +-------
+ 1 file changed, 1 insertion(+), 7 deletions(-)
+
+diff --git a/nuklear_ui/blastem_nuklear.c b/nuklear_ui/blastem_nuklear.c
+index 3578e12e54c1..f093b859aa78 100644
+--- a/nuklear_ui/blastem_nuklear.c
++++ b/nuklear_ui/blastem_nuklear.c
+@@ -2480,15 +2480,10 @@ void view_system_settings(struct nk_context *context)
+ 		}
+ 		selected_init = settings_dropdown(context, "Initial RAM Value", ram_inits, num_inits, selected_init, "system\0ram_init\0");
+ 		settings_toggle(context, "Remember ROM Path", "ui\0remember_path\0", 1);
+-		settings_toggle(context, "Use Native File Picker", "ui\0use_native_filechooser\0", 0);
+ 		settings_toggle(context, "Save config with EXE", "ui\0config_in_exe_dir\0", 0);
+ 		settings_string(context, "Game Save Path", "ui\0save_path\0", "$USERDATA/blastem/$ROMNAME");
+ 
+ 		if (nk_button_label(context, "Back")) {
+-			if (config_dirty) {
+-				char *unf = tern_find_path(config, "ui\0use_native_filechooser\0", TVAL_PTR).ptrval;
+-				use_native_filechooser = unf && !strcmp(unf, "on");
+-			}
+ 			pop_view();
+ 		}
+ 		nk_end(context);
+@@ -3042,8 +3037,7 @@ void blastem_nuklear_init(uint8_t file_loaded)
+ 	render_set_ui_render_fun(FRAMEBUFFER_UI, blastem_nuklear_render);
+ 	render_set_event_handler(FRAMEBUFFER_UI, handle_event);
+ 	render_set_gl_context_handlers(context_destroyed, context_created);
+-	char *unf = tern_find_path(config, "ui\0use_native_filechooser\0", TVAL_PTR).ptrval;
+-	use_native_filechooser = unf && !strcmp(unf, "on");
++	use_native_filechooser = 1;
+ 
+ 	atexit(persist_config_exit);
+ 
+-- 
+2.55.0
+
