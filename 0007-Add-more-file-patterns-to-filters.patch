@@ -1,0 +1,94 @@
+From 3d1dd76c7f090a4c3c410196e6767055a5a37b2d Mon Sep 17 00:00:00 2001
+From: Bastien Nocera <hadess@hadess.net>
+Date: Sun, 16 Aug 2026 15:23:31 +0200
+Subject: [PATCH 7/7] Add more file patterns to filters
+
+- Add more Mega Drive globs
+- Split off Game Gear filter
+- Add 32x filter
+- Reword filter labels
+---
+ nuklear_ui/filechooser_xdg.c | 34 ++++++++++++++++++++++++++++------
+ 1 file changed, 28 insertions(+), 6 deletions(-)
+
+diff --git a/nuklear_ui/filechooser_xdg.c b/nuklear_ui/filechooser_xdg.c
+index 54faf1b5c894..bebf8918bf09 100644
+--- a/nuklear_ui/filechooser_xdg.c
++++ b/nuklear_ui/filechooser_xdg.c
+@@ -57,8 +57,10 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 	GVariantBuilder allfiles_filter;
+ 	GVariantBuilder allsupported_filter;
+ 	GVariantBuilder gen_filter;
++	GVariantBuilder _32x_filter;
+ 	GVariantBuilder scd_filter;
+ 	GVariantBuilder sms_filter;
++	GVariantBuilder gg_filter;
+ 	GVariantBuilder vgm_filter;
+ 
+ 	g_variant_builder_init(&filters, G_VARIANT_TYPE("a(sa(us))"));
+@@ -75,6 +77,12 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gen.gz");
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.md");
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.md.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.smd");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.smd.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sgd");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sgd.gz");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.32x");
++	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.mdx");
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sms");
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.sms.gz");
+ 	g_variant_builder_add(&allsupported_filter, "(us)", 0, "*.gg");
+@@ -97,6 +105,15 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 	g_variant_builder_add(&gen_filter, "(us)", 0, "*.gen.gz");
+ 	g_variant_builder_add(&gen_filter, "(us)", 0, "*.md");
+ 	g_variant_builder_add(&gen_filter, "(us)", 0, "*.md.gz");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.smd");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.smd.gz");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.sgd");
++	g_variant_builder_add(&gen_filter, "(us)", 0, "*.sgd.gz");
++
++	g_variant_builder_init(&_32x_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&_32x_filter, "(us)", 0, "*.32x");
++	g_variant_builder_add(&_32x_filter, "(us)", 0, "*.mdx");
+ 
+ 	g_variant_builder_init(&scd_filter, G_VARIANT_TYPE("a(us)"));
+ 
+@@ -107,11 +124,14 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 
+ 	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sms");
+ 	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sms.gz");
+-	g_variant_builder_add(&sms_filter, "(us)", 0, "*.gg");
+-	g_variant_builder_add(&sms_filter, "(us)", 0, "*.gg.gz");
+ 	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sg");
+ 	g_variant_builder_add(&sms_filter, "(us)", 0, "*.sg.gz");
+ 
++	g_variant_builder_init(&gg_filter, G_VARIANT_TYPE("a(us)"));
++
++	g_variant_builder_add(&gg_filter, "(us)", 0, "*.gg");
++	g_variant_builder_add(&gg_filter, "(us)", 0, "*.gg.gz");
++
+ 	g_variant_builder_init(&vgm_filter, G_VARIANT_TYPE("a(us)"));
+ 
+ 	g_variant_builder_add(&vgm_filter, "(us)", 0, "*.flac");
+@@ -121,10 +141,12 @@ char* native_filechooser_pick(const char *title, const char *start_directory)
+ 
+ 	g_variant_builder_add(&filters, "(sa(us))", "All Files", &allfiles_filter);
+ 	g_variant_builder_add(&filters, "(sa(us))", "All Supported Files", &allsupported_filter);
+-	g_variant_builder_add(&filters, "(sa(us))", "Genesis/MD", &gen_filter);
+-	g_variant_builder_add(&filters, "(sa(us))", "Sega/Mega CD", &scd_filter);
+-	g_variant_builder_add(&filters, "(sa(us))", "Sega 8-bit", &sms_filter);
+-	g_variant_builder_add(&filters, "(sa(us))", "Audio/VGM", &vgm_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Mega Drive / Genesis", &gen_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Sega 32x", &_32x_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Mega-CD / Sega CD", &scd_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Sega Master System / SG-1000", &sms_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Sega Game Gear", &gg_filter);
++	g_variant_builder_add(&filters, "(sa(us))", "Audio / VGM", &vgm_filter);
+ 
+ 	GVariant *filters_var = g_variant_builder_end(&filters);
+ 
+-- 
+2.55.0
+
